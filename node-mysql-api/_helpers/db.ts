@@ -10,14 +10,30 @@ export default db;
 initialize();
 
 async function initialize() {
-    const { host, port, user, password, database } = config.database;
-    const connection = await mysql.createConnection({ host, port, user, password });
+    const { host, port, user, password, database } = config.database as any;
+    
+    const connection = await mysql.createConnection({ 
+        host, 
+        port, 
+        user, 
+        password,
+        ssl: { rejectUnauthorized: false }
+    });
 
     // Create DB if it doesn't exist
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
     // Connect to DB
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
+    const sequelize = new Sequelize(database, user, password, { 
+        host,
+        port,
+        dialect: 'mysql',
+        dialectOptions: {
+            ssl: {
+                rejectUnauthorized: false
+            }
+        }
+    });
 
     // Init models
     db.Account = accountModel(sequelize);
