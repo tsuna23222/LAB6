@@ -1,10 +1,13 @@
 {
     "database": {
-        "host": "localhost",
-        "port": 3306,
-        "user": "root",
-        "password": "root",
-        "database": "node_mysql_api"
+        "host": "mysql-26e7c5b7-richardcasinilloph-b89a.h.aivencloud.com",
+        "port": 16351,
+        "user": "avnadmin",
+        "password": "AVNS_KpJROFubSTpFs--tSKR",
+        "database": "defaultdb",
+        "ssl": {
+            "rejectUnauthorized": false
+        }
     },
     "secret": "SUPER_SECRET_KEY_REPLACE_ME_IN_PRODUCTION",
     "emailFrom": "americo.skiles48@ethereal.email",
