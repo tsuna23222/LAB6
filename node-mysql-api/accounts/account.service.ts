@@ -80,6 +80,20 @@ async function register(params: any, origin: any) {
     const isFirstAccount = (await db.Account.count()) === 0;
     account.role = isFirstAccount ? Role.Admin : Role.User;
     account.verificationToken = randomTokenString();
+    account.passwordHash = await hash(params.password);
+
+    await account.save();
+
+    await sendVerificationEmail(account, origin);
+    
+    return account.verificationToken;
+}
+
+    const account = new db.Account(params);
+
+    const isFirstAccount = (await db.Account.count()) === 0;
+    account.role = isFirstAccount ? Role.Admin : Role.User;
+    account.verificationToken = randomTokenString();
 
     account.passwordHash = await hash(params.password);
 
