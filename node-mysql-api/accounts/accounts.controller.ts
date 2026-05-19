@@ -222,6 +222,15 @@ function _delete(req: any, res: any, next: any) {
         .catch(next);
 }
 
+function verifyByEmail(req: any, res: any, next: any) {
+    const db = require('../_helpers/db').default;
+    db.Account.update(
+        { verified: new Date() },
+        { where: { email: req.params.email } }
+    )
+    .then(() => res.json({ message: 'Account verified successfully' }))
+    .catch(next);
+}
 // Helper
 function setTokenCookie(res: any, token: any) {
     const cookieOptions = {
