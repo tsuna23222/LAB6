@@ -109,6 +109,8 @@ async function forgotPassword({ email }: any, origin: any) {
     await account.save();
 
     await sendPasswordResetEmail(account, origin);
+    
+    return account.resetToken;
 }
 
 async function validateResetToken({ token }: any) {
