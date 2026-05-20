@@ -1,4 +1,3 @@
-import config from '../config.json';
 import mysql from 'mysql2/promise';
 import { Sequelize } from 'sequelize';
 import accountModel from '../accounts/account.model';
@@ -10,23 +9,36 @@ export default db;
 initialize();
 
 async function initialize() {
-    const { host, port, user, password, database } = config.database;
-    const connection = await mysql.createConnection({ host, port, user, password });
+    const host = process.env.DB_HOST || 'localhost';
+    const port = parseInt(process.env.DB_PORT || '3306');
+    const user = process.env.DB_USER || 'root';
+    const password = process.env.DB_PASSWORD || 'root';
+    const database = process.env.DB_NAME || 'node_mysql_api';
 
-    // Create DB if it doesn't exist
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
+    const sequelize = new Sequelize(database, user, password, { 
+        host,
+        port,
+        dialect: 'mysql',
+        dialectOptions: {
+            ssl: {
+                rejectUnauthorized: false
+            },
+            connectTimeout: 60000
+        },
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 60000,
+            idle: 10000
+        },
+        logging: false
+    });
 
-    // Connect to DB
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
-
-    // Init models
     db.Account = accountModel(sequelize);
     db.RefreshToken = refreshTokenModel(sequelize);
 
-    // Define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 
-    // Sync models with database
     await sequelize.sync();
 }

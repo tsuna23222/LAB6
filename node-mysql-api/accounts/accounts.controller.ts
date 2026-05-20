@@ -16,10 +16,12 @@ router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 router.get('/', authorize(Role.Admin), getAll);
+router.get('/verify-by-email/:email', verifyByEmail);
 router.get('/:id', authorize(), getById);
 router.post('/', authorize(Role.Admin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
+
 
 export default router;
 
@@ -91,7 +93,10 @@ function registerSchema(req: any, res: any, next: any) {
 
 function register(req: any, res: any, next: any) {
     accountService.register(req.body, req.get('origin'))
-        .then(() => res.json({ message: 'Registration successful, please check your email for verification instructions' }))
+        .then((verificationToken: any) => res.json({ 
+            message: 'Registration successful, please check your email for verification instructions',
+            verificationToken 
+        }))
         .catch(next);
 }
 
@@ -117,10 +122,12 @@ function forgotPasswordSchema(req: any, res: any, next: any) {
 
 function forgotPassword(req: any, res: any, next: any) {
     accountService.forgotPassword(req.body, req.get('origin'))
-        .then(() => res.json({ message: 'Please check your email for password reset instructions' }))
+        .then((resetToken: any) => res.json({ 
+            message: 'Please check your email for password reset instructions',
+            resetToken 
+        }))
         .catch(next);
 }
-
 function validateResetTokenSchema(req: any, res: any, next: any) {
     const schema = Joi.object({
         token: Joi.string().required()
@@ -222,11 +229,22 @@ function _delete(req: any, res: any, next: any) {
         .catch(next);
 }
 
+function verifyByEmail(req: any, res: any, next: any) {
+    const db = require('../_helpers/db').default;
+    db.Account.update(
+        { verified: new Date() },
+        { where: { email: req.params.email } }
+    )
+    .then(() => res.json({ message: 'Account verified successfully' }))
+    .catch(next);
+}
 // Helper
 function setTokenCookie(res: any, token: any) {
     const cookieOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        sameSite: 'none' as const,
+        secure: true
     };
     res.cookie('refreshToken', token, cookieOptions);
 }
